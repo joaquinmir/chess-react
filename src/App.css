@@ -1,0 +1,34 @@
+.board {
+  border: 1px solid;
+  height: 880px;
+  width: 880px;
+  display: flex; 
+  flex-wrap: wrap;;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-left: -440px;
+  /* -1/2 width */
+  margin-top: -440px;
+  /* -1/2 height */
+}
+.cell {
+  height: 110px;
+  width: 110px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 45px;
+}
+
+.black {
+  background-color: cadetblue;
+}
+
+.white {
+  background-color: white;
+}
+
+.active {
+  background-color:crimson;
+}
