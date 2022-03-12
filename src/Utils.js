@@ -44,7 +44,8 @@ export const loadPieces = (squares) => {
     let whitePieces = [];
     squares.forEach((square,i) => {
         if(square){
-            if(square.isWhite){
+            
+            if(isWhite(square)){
                 whitePieces.push(i);
             }
             else{

@@ -31,6 +31,7 @@ export default () => {
     const pieceMove = (active,i) => {
 
         let piece = squares[active].value;
+        chess.move(active,i);
         let update = squares.map((square,j) => {
             if(active === j){
                 square.value = null;
@@ -44,8 +45,6 @@ export default () => {
             return square;
         });
 
-        chess.squares = toChessFormat(update);
-        chess.whiteToPlay = !chess.whiteToPlay;
         activeSquare = null;
         return update;
     }

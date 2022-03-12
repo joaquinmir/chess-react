@@ -11,13 +11,53 @@ export default class Chess {
     constructor(fen){
         this.squares = setBoard(fen);
         [this.whitePieces,this.blackPieces] = loadPieces(this.squares); 
+        this.whiteToPlay = true; 
         this.whiteKingInCheck = false;
         this.blackKingInCheck = false;
+        this.legalMoves = new Map();
+        this.attacks = new Map();
+        this.calculateLegalMoves();
         
-        this.whiteToPlay = true; 
     }
 
+    move(from,to){
+        let piece = this.squares[from];
+        let index;
+        this.squares[from] = null;
+        if(this.squares[to]){
+        
+            
+            if(this.whiteToPlay){
+                index = this.blackPieces.indexOf(to);
+                this.blackPieces.splice(index, 1);
+            }
+            else {
+                index = this.whitePieces.indexOf(to);
+                this.whitePieces.splice(index, 1);
+            }
+        }
+        this.squares[to] = piece;
+        if(this.whiteToPlay){
+            index = this.whitePieces.indexOf(from);
+            this.whitePieces[index] = to;
+        }
+        else {
+            index = this.blackPieces.indexOf(from);
+            this.blackPieces[index] = to;
+        }
+        this.attacks.clear();
+        this.calculateAttacks();
+        this.whiteToPlay = !this.whiteToPlay;
+        this.legalMoves.clear();
+        this.calculateLegalMoves();
+        console.log(this.attacks)
+        
+    }
   
+    changeTurn(){
+        this.whiteToPlay = !this.whiteToPlay;
+        this.calculateLegalMoves();
+    }
 
     validateTurn(i){
         
@@ -46,35 +86,109 @@ export default class Chess {
         return false;
     }
 
-    getLegalMoves(i) {
-        const {x,y} = getXYPosition(i);
-        switch (this.squares[i].toLowerCase()){
-            case 'p': 
-                return this.getPawnMoves(i,x,y);
-                break;
-
-            case 'n':
-                return this.getKnightMoves(x,y);
-                break;
-
-            case 'b':
-                return this.getBishopMoves(x,y);
-                break;
-
-            case 'r':
-                return this.getRookMoves(x,y);
-                break;
-           
+    calculateAttacks(){
+        let pieces = [];
+     
+        if(this.whiteToPlay){
             
-            case 'q':
-                return this.getRookMoves(x,y).concat(this.getBishopMoves(x,y));
-                break;
-                 /*
-            case 'k':
-                return getKingMoves(x,y);
-                break;*/
+            pieces = [...this.whitePieces];
+        }
+        else {
+      
+            pieces = [...this.blackPieces];
+        }
+
+        pieces.forEach(i => {
+            const {x,y} = getXYPosition(i);
+            
+            switch (this.squares[i].toLowerCase()){
+                case 'p': 
+                    this.attacks.set(i,this.getPawnMoves(i,x,y,true));
+                    break;
+
+                case 'n':
+                    this.attacks.set(i,this.getKnightMoves(x,y));
+                    break;
+
+                case 'b':
+                    this.attacks.set(i,this.getBishopMoves(x,y));
+                    break;
+
+                case 'r':
+                    this.attacks.set(i,this.getRookMoves(x,y));
+                    break;
+            
+                
+                case 'q':
+                    this.attacks.set(i,this.getRookMoves(x,y).concat(
+                    this.getBishopMoves(x,y)));
+                    break;
+                    /*
+                case 'k':
+                    return getKingMoves(x,y);
+                    break;*/
+            }
+        })
+        
+    
+    }
+
+    calculateLegalMoves() {
+        let pieces = [];
+     
+        if(this.whiteToPlay){
+            
+            pieces = [...this.whitePieces];
+        }
+        else {
+      
+            pieces = [...this.blackPieces];
+        }
+
+        pieces.forEach(i => {
+            const {x,y} = getXYPosition(i);
+            
+            switch (this.squares[i].toLowerCase()){
+                case 'p': 
+                    this.legalMoves.set(i,this.getPawnMoves(i,x,y,false));
+                    break;
+
+                case 'n':
+                    this.legalMoves.set(i,this.getKnightMoves(x,y));
+                    break;
+
+                case 'b':
+                    this.legalMoves.set(i,this.getBishopMoves(x,y));
+                    break;
+
+                case 'r':
+                    this.legalMoves.set(i,this.getRookMoves(x,y));
+                    break;
+            
+                
+                case 'q':
+                    this.legalMoves.set(i,this.getRookMoves(x,y).concat(
+                    this.getBishopMoves(x,y)));
+                    break;
+                    /*
+                case 'k':
+                    return getKingMoves(x,y);
+                    break;*/
+            }
+        })
+        
+    
+           
+    }
+
+    getLegalMoves(i){
+        if((this.whiteToPlay &&  this.whitePieces.includes(i)) || (!this.whiteToPlay &&  this.blackPieces.includes(i))){
+      
+            return(this.legalMoves.get(i));
+
         }
     }
+    
 
     isAlly(square){
         if(this.whiteToPlay && isWhite(square)){
@@ -97,7 +211,8 @@ export default class Chess {
         return false;
     }
 
-    getPawnMoves(i,x,y) {
+    getPawnMoves(i,x,y,onlyAttack) {
+    
         let moves = [];
         let take1,take2;
         let aux;
@@ -116,28 +231,42 @@ export default class Chess {
             take2 = getIndexPosition(x+1,y+(aux));
         }
 
-        if(!this.squares[i+(8*aux)]){ //y+1 square is empty
+        if(!this.squares[i+(8*aux)] && !onlyAttack){ //y+1 square is empty
             moves.push(i+(8*aux));
             if(this.pawnHaventMove(y) && !this.squares[i+(16*aux)]){ //if first move and y+2 is empty
                 moves.push(i+(16*aux));
             }
         }
 
-        if(take1 && this.squares[take1]){
-            if(!this.isAlly(this.squares[take1])){
-                
+        
+        if(take1){
+            if(onlyAttack){
                 moves.push(take1);
             }
-        }
-        if(take2 && this.squares[take2]){
-            if(!this.isAlly(this.squares[take2])){
+            else if (this.squares[take1]){
+                if(!this.isAlly(this.squares[take1])){
                 
+                    moves.push(take1);
+                }
+            }
+            
+        }
+        if(take2){
+            if(onlyAttack){
                 moves.push(take2);
             }
+            else if (this.squares[take2]){
+                if(!this.isAlly(this.squares[take2])){
+                
+                    moves.push(take2);
+                }
+            }
+            
         }
-    
+
         return moves;
     }
+
 
     getRookMoves(x,y){
         let moves = [];
@@ -193,7 +322,6 @@ export default class Chess {
                 moves.push(i);
             }
         }
-
 
         return moves;
 
