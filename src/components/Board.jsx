@@ -66,14 +66,17 @@ export default () => {
     }
 
     const handleClick = (x,y) => {
+    
         let i = getIndexPosition(x,y);
-        if(activeSquare){  //si hay cuadrado activo
+        if(activeSquare != null){  //si hay cuadrado activo
             if(chess.newSelection(activeSquare,i)){ //me fijo si la seleccion es nueva y valida
+              
                 setSquares(renderLegalMoves(i));
                 activeSquare = i;
             }
             else{ // si no me fijo si lo puedo mover a ese lugar
                 const moves = chess.getLegalMoves(activeSquare);
+               
                 if(moves.includes(i)){
                     let update = pieceMove(activeSquare,i);
                     setSquares(update);
@@ -81,7 +84,9 @@ export default () => {
             }
         }
         else{ //si no hay cuadrado activo lo selecciono a este como activo
+
             if(squares[i].value && chess.validateTurn(i)){
+                
                 activeSquare = i;
                 setSquares(renderLegalMoves(i));
             }
