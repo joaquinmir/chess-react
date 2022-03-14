@@ -6,8 +6,8 @@ import Chess from "../Chess"
 import EndGame from "./EndGame"
 
 
-//let FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
-let FEN = "rnb1kbnr/pp1q2pp/2pp4/4pp2/2B1P3/2NPBN2/PPP2PPP/R2QK2R"
+let FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+
 let chess = new Chess(FEN);
 let activeSquare = null;
 let message = null;
@@ -119,8 +119,8 @@ export default () => {
         <div>
             
             <div className="board">
-                {squares.map((square) => (  
-                    <Square handleClick = {handleClick} isWhite={isWhite(square.value)} pos={square.pos} color={square.color} value={square.value} />
+                {squares.map((square,i) => (  
+                    <Square key = {i} handleClick = {handleClick} isWhite={isWhite(square.value)} pos={square.pos} color={square.color} value={square.value} />
                 ))}
             </div>
             <EndGame trigger={end} message={message}/>

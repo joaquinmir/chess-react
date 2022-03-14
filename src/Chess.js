@@ -21,6 +21,10 @@ export default class Chess {
         this.bCastleQSide = true;
         this.bCastleKSide = true;
         this.end = false;
+        this.pawnMovedTwoSquares = false;
+        this.squareEnPassant = null;
+        this.enPassantCounter = 0;
+        this.enPassantDetected = false;
         this.winner = null;
         this.legalMoves = new Map();
         this.attacks = new Map();
@@ -32,6 +36,7 @@ export default class Chess {
         let piece = this.squares[from];
         let castle = false;
         let castleRook;
+        let index;
         if(piece.toLowerCase() === "k"){
             if(this.whiteToPlay){
                 if(to === 62){
@@ -76,7 +81,40 @@ export default class Chess {
                 }
             }
         }
-        let index;
+        else if (piece.toLowerCase() === "p"){
+            if(this.whiteToPlay){
+                if(this.enPassantDetected && to === this.squareEnPassant){
+                    this.squares[to + 8] = null;
+                    index = this.blackPieces.indexOf(to+8);
+                    this.blackPieces.splice(index, 1);
+                }
+                else if ((from - 16 ) === to){
+                    this.pawnMovedTwoSquares = true;
+                    this.squareEnPassant = from - 8;
+                    this.enPassantCounter = 2;
+                }
+                else if(to < 8){
+                    piece = "Q";
+                }
+            }
+            else {
+                if(this.enPassantDetected && to === this.squareEnPassant){
+                    
+                    this.squares[to - 8] = null;
+                    index = this.whitePieces.indexOf(to-8);
+                    this.whitePieces.splice(index, 1);
+                }
+                else if ((from + 16) === to){
+                    this.pawnMovedTwoSquares = true;
+                    this.squareEnPassant = from + 8;
+                    this.enPassantCounter = 2;
+                }
+                else if(to > 55){
+                    piece = "q";
+                }
+            } 
+        }
+        
         this.squares[from] = null;
         if(this.squares[to]){
             if(this.whiteToPlay){
@@ -110,6 +148,12 @@ export default class Chess {
         }
 
         if(!castling){
+            if(this.enPassantCounter){
+                if(--this.enPassantCounter === 0){
+                    this.enPassantDetected = false;
+                    this.squareEnPassant = null;
+                }
+            }
             this.whiteToPlay = !this.whiteToPlay;
             this.attacks.clear();
             this.calculateAttacks();
@@ -119,6 +163,8 @@ export default class Chess {
             this.verifyMateAndStale();
 
         }
+    
+        
         
     }
 
@@ -502,6 +548,12 @@ export default class Chess {
                   
                 }
             }
+            else if (this.squareEnPassant && this.squareEnPassant === take1){
+                if(this.canMakeThatMove(i,take1)){
+                    moves.push(take1);
+                    this.enPassantDetected = true;
+                }
+            }
             
         }
         if(take2){
@@ -514,6 +566,12 @@ export default class Chess {
                         moves.push(take2);
                     }
                   
+                }
+            }
+            else if (this.squareEnPassant && this.squareEnPassant === take2){
+                if(this.canMakeThatMove(i,take2)){
+                    moves.push(take2);
+                    this.enPassantDetected = true;
                 }
             }
             
