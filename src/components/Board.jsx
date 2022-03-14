@@ -3,16 +3,20 @@ import {getIndexPosition,getXYPosition,setBoard,getColor,toChessFormat,isWhite} 
 import '../App.css';
 import Square from "./Square"
 import Chess from "../Chess"
+import EndGame from "./EndGame"
 
 
-let FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+//let FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+let FEN = "rnb1kbnr/pp1q2pp/2pp4/4pp2/2B1P3/2NPBN2/PPP2PPP/R2QK2R"
 let chess = new Chess(FEN);
 let activeSquare = null;
+let message = null;
 
 
 
 export default () => {
     const[squares,setSquares] = useState([]);
+    const[end,setEnd] = useState(false);
     
     useEffect(() => { 
         let item;
@@ -33,14 +37,7 @@ export default () => {
         let piece = squares[active].value;
         chess.move(active,i);
         let update = squares.map((square,j) => {
-            if(active === j){
-                square.value = null;
-                
-            }
-            else if (j === i){
-                square.value = piece;
-                
-            }
+            square.value = chess.squares[j]
             square.color = getColor(j);
             return square;
         });
@@ -65,6 +62,7 @@ export default () => {
         return update;
     }
 
+
     const handleClick = (x,y) => {
     
         let i = getIndexPosition(x,y);
@@ -80,6 +78,24 @@ export default () => {
                 if(moves.includes(i)){
                     let update = pieceMove(activeSquare,i);
                     setSquares(update);
+                    if(chess.end){
+                        switch(chess.winner){
+                            case "white": 
+                                message = "CheckMate! White wins"
+                                break;
+                            case "black":
+                                message = "CheckMate! Black wins"
+                                break;
+                            case "draw":
+                                message = "Game ended by Draw"
+                                break;
+                        }
+                        setTimeout(() => {
+                            setEnd(true); 
+                        }, 1000);
+                        
+                        
+                    }
                 }
             }
         }
@@ -100,10 +116,14 @@ export default () => {
     }
 
     return(
-        <div className="board">
-            {squares.map((square) => (  
-                <Square handleClick = {handleClick} isWhite={isWhite(square.value)} pos={square.pos} color={square.color} value={square.value} />
-            ))}
+        <div>
+            
+            <div className="board">
+                {squares.map((square) => (  
+                    <Square handleClick = {handleClick} isWhite={isWhite(square.value)} pos={square.pos} color={square.color} value={square.value} />
+                ))}
+            </div>
+            <EndGame trigger={end} message={message}/>
         </div>
     );
 }

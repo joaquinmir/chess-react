@@ -16,14 +16,66 @@ export default class Chess {
         this.whiteToPlay = true; 
         this.whiteKingInCheck = false;
         this.blackKingInCheck = false;
+        this.wCastleQSide = true;
+        this.wCastleKSide = true;
+        this.bCastleQSide = true;
+        this.bCastleKSide = true;
+        this.end = false;
+        this.winner = null;
         this.legalMoves = new Map();
         this.attacks = new Map();
         this.calculateLegalMoves();
         
     }
 
-    move(from,to){
+    move(from,to,castling = false){
         let piece = this.squares[from];
+        let castle = false;
+        let castleRook;
+        if(piece.toLowerCase() === "k"){
+            if(this.whiteToPlay){
+                if(to === 62){
+                    castle = true;
+                    castleRook = [63,61]
+                }
+                else if (to === 58){
+                    castle = true;
+                    castleRook = [56,59]
+                }
+                this.wCastleKSide = false;
+                this.wCastleQSide = false;
+            }
+            else {
+                if(to === 2){
+                    castle = true;
+                    castleRook = [0,3];
+                } 
+                else if(to === 6){
+                    castle = true;
+                    castleRook = [7,5];
+                }
+                this.bCastleKSide = false;
+                this.bCastleQSide = false;
+            }
+        }
+        else if (piece.toLowerCase() === "r" && !castling){
+            if(this.whiteToPlay){
+                if(from === 63 && this.wCastleKSide){
+                    this.wCastleKSide = false;
+                }
+                else if (from === 56 && this.wCastleQSide){
+                    this.wCastleQSide = false;
+                }
+            }
+            else{
+                if(from === 0 && this.bCastleQSide){
+                    this.bCastleQSide = false;
+                }
+                else if (from === 7 && this.bCastleKSide){
+                    this.bCastleKSide = false;
+                }
+            }
+        }
         let index;
         this.squares[from] = null;
         if(this.squares[to]){
@@ -51,15 +103,22 @@ export default class Chess {
         else {
             this.blackKingInCheck = false;
         }
-        this.whiteToPlay = !this.whiteToPlay;
-        this.attacks.clear();
-        this.calculateAttacks();
-        this.verifyCheck();
-        this.legalMoves.clear();
-        this.calculateLegalMoves();
 
-        this.verifyMateAndStale();
+        if(castle){
+            
+            this.move(castleRook[0],castleRook[1],true);
+        }
 
+        if(!castling){
+            this.whiteToPlay = !this.whiteToPlay;
+            this.attacks.clear();
+            this.calculateAttacks();
+            this.verifyCheck();
+            this.legalMoves.clear();
+            this.calculateLegalMoves();
+            this.verifyMateAndStale();
+
+        }
         
     }
 
@@ -75,6 +134,12 @@ export default class Chess {
         }
     }
 
+    endGame(winner){
+        this.winner = winner;
+        
+        this.end = true;
+    }
+
     verifyMateAndStale() {
         const iterator = this.legalMoves.keys();
         for(let j = 0 ; j<this.legalMoves.size ; j++){
@@ -84,18 +149,18 @@ export default class Chess {
         }
         if(this.whiteToPlay){
             if(this.whiteKingInCheck){
-                console.log("Gana el negro")
+                this.endGame("black");
             }
             else {
-                console.log("Tablas por ahogado")
+                this.endGame("draw");
             }
         }  
         else{
             if(this.blackKingInCheck){
-                console.log("Gana el blanco")
+                this.endGame("white");
             }
             else {
-                console.log("Tablas por ahogado")
+                this.endGame("draw");
             }
         }
         
@@ -315,6 +380,41 @@ export default class Chess {
         return false;
     }
 
+    checkForCastle(){
+        let sides = [];
+        if(this.whiteToPlay && !this.whiteKingInCheck){
+            if(this.wCastleKSide){
+                if(!this.squares[62] && !this.squares[61] && !this.isAttacked(62,this.attacks) 
+                && !this.isAttacked(61,this.attacks)){
+                    sides.push(62);
+                } 
+            }
+            if (this.wCastleQSide){
+                if(!this.squares[59] && !this.squares[58] && !this.squares[57] && !this.isAttacked(59,this.attacks)
+                 && !this.isAttacked(58,this.attacks) && !this.isAttacked(57,this.attacks)){
+                    sides.push(58);
+                 }
+            }
+        }
+        else if (!this.blackKingInCheck){
+
+            if(this.bCastleKSide){
+                if(!this.squares[5] && !this.squares[6] && !this.isAttacked(5,this.attacks) 
+                && !this.isAttacked(6,this.attacks)){
+                    sides.push(6);
+                }
+            }
+            if (this.bCastleQSide){
+                if(!this.squares[1] && !this.squares[2] && !this.squares[3] && !this.isAttacked(1,this.attacks)
+                 && !this.isAttacked(2,this.attacks) && !this.isAttacked(3,this.attacks)){
+                    sides.push(2);
+                 }
+            }
+        }
+
+        return sides;
+    }
+
     getKingMoves(x,y,onlyAttack){
         let moves = [];
         let x0,y0,i0;
@@ -340,6 +440,14 @@ export default class Chess {
                     }
                 }
                 
+            }
+
+            if(!onlyAttack){
+                let sides = this.checkForCastle();
+                sides.forEach((side) => {
+                    
+                    moves.push(side);
+                })
             }
                 
         }
