@@ -1,6 +1,6 @@
 # React Chess v1.0
 
-React Chess is a chess app made from scratch with react. The idea was to create a program that control all the rules of chess and shows it with react. You can basically use [chess.js](https://github.com/jhlywa/chess.js "chess.js") library if you want to do a chess app, but the idea of this project was to made it all from scratch (just for fun). 
+React Chess is a chess app made from scratch with react. The idea was to create a program that control all the rules of chess and show them with react. You can basically use [chess.js](https://github.com/jhlywa/chess.js "chess.js") library if you want to do a chess app, but the idea of this project was to made it all from scratch (just for fun). 
 The game is very limited, you can only play white and there is no engine to play with. 
 
 ![image](https://user-images.githubusercontent.com/97806069/174159598-f364d06e-3b73-4c16-8a44-ac84f8c13c97.png)
