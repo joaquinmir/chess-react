@@ -277,7 +277,7 @@ export default class Chess {
                 case 'r':
                     this.attacks.set(i,this.getRookMoves(x,y,true));
                     break;
-            
+             
                 
                 case 'q':
                     this.attacks.set(i,this.getRookMoves(x,y,true).concat(
@@ -752,11 +752,11 @@ export default class Chess {
             i0 = getIndexPosition(x0,y0);
 
             // count valid moves
-            if (x0 >= 0 && y0 >= 0 && x0 < 8 && y0 < 8 && (!this.isAlly(this.squares[i],this.squares[i0]) || !this.squares[i0])){
+            if (x0 >= 0 && y0 >= 0 && x0 < 8 && y0 < 8){
                 if(onlyAttack){
                     moves.push(i0);
                 }
-                else if(this.canMakeThatMove(i,i0)){
+                else if(this.canMakeThatMove(i,i0) && (!this.isAlly(this.squares[i],this.squares[i0]) || !this.squares[i0])){
                     moves.push(i0);
                 }   
                
